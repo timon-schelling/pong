@@ -1,16 +1,26 @@
 package de.timokrates.pong.client
 
 import kotlinx.browser.document
-import kotlinx.html.dom.append
-import kotlinx.html.js.canvas
+import kotlinx.browser.window
+import org.w3c.dom.CanvasRenderingContext2D
+import org.w3c.dom.HTMLCanvasElement
 
-fun main() {
-    document.getElementById("app")?.apply{
-        innerHTML = ""
-        append {
-            canvas {
-                id = "canvas"
-            }
-        }
-    }
+
+val canvas = initalizeCanvas()
+fun initalizeCanvas(): HTMLCanvasElement {
+    val canvas = document.createElement("canvas") as HTMLCanvasElement
+    val context = canvas.getContext("2d") as CanvasRenderingContext2D
+    context.canvas.width = window.innerWidth
+    context.canvas.height = window.innerHeight
+    window.addEventListener("resize", {
+        context.canvas.width = window.innerWidth
+        context.canvas.height = window.innerHeight
+    })
+    document.body!!.appendChild(canvas)
+    return canvas
+}
+
+suspend fun main() {
+    val context = canvas.getContext("2d") as CanvasRenderingContext2D
+    game(drawContext = context)
 }

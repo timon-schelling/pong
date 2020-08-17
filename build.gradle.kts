@@ -18,3 +18,18 @@ subprojects {
         maven("https://jitpack.io")
     }
 }
+
+task("distribute") {
+    group = "distribute"
+    dependsOn("build")
+    dependsOn("copySubProjectDist")
+}
+
+task("copySubProjectDist", Copy::class) {
+    group = "distribute"
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    subprojects.forEach {
+        from("${it.buildDir}/dist")
+    }
+    into("$buildDir/dist")
+}

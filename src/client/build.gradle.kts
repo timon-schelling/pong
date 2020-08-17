@@ -1,6 +1,10 @@
 kotlin {
     js {
-        browser()
+        browser {
+            distribution {
+                directory = File("$buildDir/dist/")
+            }
+        }
     }
     sourceSets {
         val commonMain by getting {
@@ -8,6 +12,7 @@ kotlin {
                 implementation(kotlin("stdlib-common"))
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.8-1.4.0-rc")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:1.0-M1-1.4.0-rc")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-protobuf:1.0-M1-1.4.0-rc")
                 implementation("org.jetbrains.kotlinx:kotlinx-html-js:0.6.12")
                 implementation(project(":lib"))
                 implementation(project(":domain"))
@@ -19,11 +24,11 @@ kotlin {
                 implementation(kotlin("test-annotations-common"))
             }
         }
+        val jsMain by getting {
+            dependencies {
+                implementation("io.ktor:ktor-client-js:1.3.2-1.4.0-rc")
+                implementation("io.ktor:ktor-client-json-js:1.3.2-1.4.0-rc")
+            }
+        }
     }
 }
-
-rootProject.extensions.findByType<org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension>().apply {
-    this?.nodeVersion = "14.8.0"
-}
-
-(rootProject.tasks["kotlinNpmInstall"] as org.jetbrains.kotlin.gradle.targets.js.npm.tasks.KotlinNpmInstallTask).apply {}

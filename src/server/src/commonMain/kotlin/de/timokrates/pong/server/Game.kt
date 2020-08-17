@@ -17,17 +17,17 @@ object Game : Mutex by Mutex() {
             player = listOf(
                     Player(
                             position = Position(
-                                    x = 1.0,
-                                    y = 0.0
-                            ),
-                            size = 0.50
-                    ),
-                    Player(
-                            position = Position(
                                     x = -1.0,
                                     y = 0.0
                             ),
-                            size = 0.50
+                            size = 0.25
+                    ),
+                    Player(
+                            position = Position(
+                                    x = 1.0,
+                                    y = 0.0
+                            ),
+                            size = 0.25
                     )
             ),
             ball = Ball(
@@ -37,7 +37,7 @@ object Game : Mutex by Mutex() {
 }
 
 @OptIn(ExperimentalTime::class)
-suspend fun game(playerSpeed: Double = 0.01) {
+suspend fun game(playerSpeed: Double = 0.015) {
     val run = true
     while (run) {
         val frameTime = measureTime {
@@ -56,10 +56,10 @@ suspend fun game(playerSpeed: Double = 0.01) {
                     Input.Up   -> state.player[i].position.y + playerSpeed
                     Input.Down -> state.player[i].position.y - playerSpeed
                 }
-                if (position < -1.0) {
-                    position = -1.0
-                } else if (position > 1.0) {
-                    position = 1.0
+                if (position < -(1.0-state.player[i].size)) {
+                    position = -(1.0-state.player[i].size)
+                } else if (position > 1.0-state.player[i].size) {
+                    position = 1.0-state.player[i].size
                 }
                 playerPositionsY.add(position)
             }

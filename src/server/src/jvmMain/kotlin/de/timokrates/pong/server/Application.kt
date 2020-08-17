@@ -5,6 +5,7 @@ import de.timokrates.pong.domain.State
 import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
@@ -21,6 +22,7 @@ fun Application.application() {
             Game.withLock {
                 state = Game.state
             }
+            call.response.header("Access-Control-Allow-Origin", "*")
             call.respond(state)
         }
         route("player") {
@@ -34,10 +36,15 @@ fun Application.application() {
                                 this[player] = input
                             }
                         }
+                        call.response.header("Access-Control-Allow-Origin", "*")
                         call.respond(HttpStatusCode.OK)
                     }
                 }
             }
+        }
+        static {
+            files(".")
+            default("index.html")
         }
     }
 }
