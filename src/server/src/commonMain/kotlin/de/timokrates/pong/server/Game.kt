@@ -92,6 +92,6 @@ suspend fun Game.gameLoop(update: Channel<Update>) {
 
             if (lastState != state) update.send(Update(state = state))
         }
-        delay(10.milliseconds - frameTime)
+        delay(5.milliseconds - frameTime)
     }
 }
