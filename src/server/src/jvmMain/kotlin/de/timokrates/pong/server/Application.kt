@@ -1,45 +1,45 @@
 package de.timokrates.pong.server
 
-import de.timokrates.pong.domain.Input
-import de.timokrates.pong.domain.State
+import de.timokrates.pong.domain.Update
 import io.ktor.application.*
-import io.ktor.features.*
-import io.ktor.http.*
+import io.ktor.http.cio.websocket.*
 import io.ktor.http.content.*
-import io.ktor.request.*
-import io.ktor.response.*
 import io.ktor.routing.*
-import io.ktor.serialization.*
-import kotlinx.coroutines.sync.withLock
+import io.ktor.websocket.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.channels.ClosedReceiveChannelException
+import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
+import kotlin.time.ExperimentalTime
+import kotlin.time.seconds
+import kotlin.time.toJavaDuration
 
+@OptIn(ExperimentalTime::class)
 fun Application.application() {
-    install(ContentNegotiation) {
-        json()
+    install(WebSockets) {
+        maxFrameSize = Long.MAX_VALUE
+        pingPeriod = 60.seconds.toJavaDuration()
+        timeout = 60.seconds.toJavaDuration()
     }
     routing {
-        get("state") {
-            val state: State
-            Game.withLock {
-                state = Game.state
-            }
-            call.response.header("Access-Control-Allow-Origin", "*")
-            call.respond(state)
-        }
-        route("player") {
-            route("{player}") {
-                post("input") {
-                    val player = call.parameters["player"]?.toInt()
-                    if (player != null) {
-                        val input = call.receive<Input>()
-                        Game.withLock {
-                            Game.inputs = Game.inputs.toMutableList().apply {
-                                this[player] = input
-                            }
-                        }
-                        call.response.header("Access-Control-Allow-Origin", "*")
-                        call.respond(HttpStatusCode.OK)
+        webSocket("/") {
+            try {
+                val gameId = call.parameters["game"] ?: return@webSocket
+                val client = Client()
+                GameService.join(gameId, client)
+                GlobalScope.launch {
+                    for (update in client.output) {
+                        outgoing.send(Frame.Text(Json.encodeToString(Update.serializer(), update)))
                     }
                 }
+                for (frame in incoming) {
+                    if (frame !is Frame.Text) continue
+                    val update = Json.decodeFromString(Update.serializer(), frame.readText())
+                    client.input.send(update)
+                }
+            } catch (e: ClosedReceiveChannelException) {
+            } catch (e: Throwable) {
+                e.printStackTrace()
             }
         }
         static {

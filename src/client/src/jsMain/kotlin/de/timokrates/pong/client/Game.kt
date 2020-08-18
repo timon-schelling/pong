@@ -2,22 +2,24 @@ package de.timokrates.pong.client
 
 import de.timokrates.pong.domain.Input
 import de.timokrates.pong.domain.State
-import io.ktor.client.*
-import io.ktor.client.engine.js.*
-import io.ktor.client.request.*
-import io.ktor.http.*
+import de.timokrates.pong.domain.Update
 import kotlinx.browser.window
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.Json
 import org.w3c.dom.CanvasRenderingContext2D
 import kotlin.time.ExperimentalTime
-import kotlin.time.milliseconds
+import kotlin.time.seconds
 
-@OptIn(ExperimentalTime::class)
-suspend fun game(drawContext: CanvasRenderingContext2D) {
-    val httpClient = HttpClient(Js)
+fun runGame(drawContext: CanvasRenderingContext2D, server: Server) {
+    handleInput(server)
+    val stateChannel = Channel<State?>()
+    receiveStateUpdate(server, stateChannel)
+    drawContext.drawStateUpdates(stateChannel)
+}
+
+private fun handleInput(server: Server) {
     var up = false
     var down = false
     fun sendInputUpdate() {
@@ -31,10 +33,7 @@ suspend fun game(drawContext: CanvasRenderingContext2D) {
             }
         }
         GlobalScope.launch {
-            httpClient.post<Unit>("http://localhost/player/0/input") {
-                contentType(ContentType.Application.Json)
-                body = Json.encodeToString(Input.serializer(), input)
-            }
+            server.output.send(Update(input = input))
         }
     }
     window.onkeydown = {
@@ -55,33 +54,54 @@ suspend fun game(drawContext: CanvasRenderingContext2D) {
         }
         sendInputUpdate()
     }
-    var lastStateString = ""
-    var run = true
-    var c = 0
-    while (run) {
-        val stateString = httpClient.get<String>("http://localhost/state")
-        val state = Json.decodeFromString(State.serializer(), stateString)
-        if (c >= 10 || lastStateString != stateString) {
-            drawContext.fillStyle = "#000000"
-            drawContext.drawScaledRect(0.0, 0.0, 1.0, 1.0)
-            drawContext.fillStyle = "#FFFFFF"
-            state.player.forEach {
-                drawContext.drawScaledRect(it.position.x, it.position.y, 0.025, it.size)
-            }
-            drawContext.drawScaledRect(state.ball.position.x, state.ball.position.y, 0.025, 0.025)
-            c = 0
-        } else {
-            delay(10.milliseconds)
-            c++
+}
+
+@OptIn(ExperimentalTime::class)
+private fun receiveStateUpdate(
+        server: Server,
+        stateChannel: Channel<State?>
+) {
+    GlobalScope.launch {
+        for (update in server.input) {
+            update.state?.let { stateChannel.send(it) }
         }
-        lastStateString = stateString
+    }
+    GlobalScope.launch {
+        while (!stateChannel.isClosedForSend) {
+            stateChannel.send(null)
+            delay(1.seconds)
+        }
     }
 }
 
-fun CanvasRenderingContext2D.drawScaledRect(x: Double, y: Double, w: Double, h: Double) {
-    val realX = canvas.width * ((x + 1) / 2)
-    val realY = canvas.height - (canvas.height * ((y + 1) / 2))
-    val realW = canvas.width * w
-    val realH = canvas.height * h
-    fillRect(realX - (realW / 2), realY - (realH / 2), realW, realH)
+fun CanvasRenderingContext2D.drawStateUpdates(stateChannel: Channel<State?>) {
+    fun CanvasRenderingContext2D.drawScaledRect(x: Double, y: Double, w: Double, h: Double) {
+        val realX = canvas.width * ((x + 1) / 2)
+        val realY = canvas.height - (canvas.height * ((y + 1) / 2))
+        val realW = canvas.width * w
+        val realH = canvas.height * h
+        fillRect(realX - (realW / 2), realY - (realH / 2), realW, realH)
+    }
+
+    fun CanvasRenderingContext2D.drawState(state: State) {
+        fillStyle = "#000000"
+        drawScaledRect(0.0, 0.0, 1.0, 1.0)
+        fillStyle = "#FFFFFF"
+        state.player.forEach {
+            drawScaledRect(it.position.x, it.position.y, 0.025, it.size)
+        }
+        drawScaledRect(state.ball.position.x, state.ball.position.y, 0.025, 0.025)
+    }
+
+    GlobalScope.launch {
+        var lastState: State? = null
+        for (state in stateChannel) {
+            if (state != null) {
+                drawState(state)
+                lastState = state
+            } else if (lastState != null) {
+                drawState(lastState)
+            }
+        }
+    }
 }

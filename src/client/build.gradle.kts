@@ -28,6 +28,7 @@ kotlin {
             dependencies {
                 implementation("io.ktor:ktor-client-js:1.3.2-1.4.0-rc")
                 implementation("io.ktor:ktor-client-json-js:1.3.2-1.4.0-rc")
+                implementation("io.ktor:ktor-client-websockets:1.3.2-1.4.0-rc")
             }
         }
     }

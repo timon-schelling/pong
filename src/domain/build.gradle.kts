@@ -1,5 +1,11 @@
 kotlin {
-    jvm()
+    jvm {
+        val main by compilations.getting {
+            kotlinOptions {
+                jvmTarget = "1.8"
+            }
+        }
+    }
     js {
         browser()
     }

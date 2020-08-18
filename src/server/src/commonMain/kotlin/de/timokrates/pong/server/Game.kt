@@ -1,6 +1,7 @@
 package de.timokrates.pong.server
 
 import de.timokrates.pong.domain.*
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -8,7 +9,9 @@ import kotlin.time.ExperimentalTime
 import kotlin.time.measureTime
 import kotlin.time.milliseconds
 
-object Game : Mutex by Mutex() {
+class Game : Mutex by Mutex() {
+
+    var playerSpeed = 0.015
     var inputs = listOf(
             Input.None,
             Input.None
@@ -37,29 +40,30 @@ object Game : Mutex by Mutex() {
 }
 
 @OptIn(ExperimentalTime::class)
-suspend fun game(playerSpeed: Double = 0.015) {
+suspend fun Game.gameLoop(update: Channel<Update>) {
+    update.send(Update(state = state))
     val run = true
     while (run) {
         val frameTime = measureTime {
 
+            val lastState = state
+
             val inputs: List<Input>
-            var state: State
-            Game.withLock {
-                inputs = Game.inputs
-                state = Game.state
+            this.withLock {
+                inputs = this.inputs
             }
 
             var playerPositionsY = mutableListOf<Double>()
             inputs.forEachIndexed { i, it ->
                 var position = when (it) {
                     Input.None -> state.player[i].position.y
-                    Input.Up   -> state.player[i].position.y + playerSpeed
-                    Input.Down -> state.player[i].position.y - playerSpeed
+                    Input.Up -> state.player[i].position.y + this.playerSpeed
+                    Input.Down -> state.player[i].position.y - this.playerSpeed
                 }
-                if (position < -(1.0-state.player[i].size)) {
-                    position = -(1.0-state.player[i].size)
-                } else if (position > 1.0-state.player[i].size) {
-                    position = 1.0-state.player[i].size
+                if (position < -(1.0 - state.player[i].size)) {
+                    position = -(1.0 - state.player[i].size)
+                } else if (position > 1.0 - state.player[i].size) {
+                    position = 1.0 - state.player[i].size
                 }
                 playerPositionsY.add(position)
             }
@@ -86,9 +90,7 @@ suspend fun game(playerSpeed: Double = 0.015) {
                     )
             )
 
-            Game.withLock {
-                Game.state = state
-            }
+            if (lastState != state) update.send(Update(state = state))
         }
         delay(10.milliseconds - frameTime)
     }

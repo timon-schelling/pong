@@ -1,5 +1,11 @@
 kotlin {
-    jvm()
+    jvm {
+        val main by compilations.getting {
+            kotlinOptions {
+                jvmTarget = "1.8"
+            }
+        }
+    }
     sourceSets {
         val commonMain by getting {
             dependencies {
@@ -20,6 +26,7 @@ kotlin {
             dependencies {
                 implementation("io.ktor:ktor-server-netty:1.3.2-1.4.0-rc")
                 implementation("io.ktor:ktor-serialization:1.3.2-1.4.0-rc")
+                implementation("io.ktor:ktor-websockets:1.3.2-1.4.0-rc")
             }
         }
     }
