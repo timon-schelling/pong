@@ -93,21 +93,21 @@ class Game {
                     ballSpeedY = 0.0
                 } else {
                     val ballDistanceToPlayerCenter = abs(ballY - player.position.y)
-                    if (ballDistanceToPlayerCenter >= (player.size / 8) * 3) {
+                    if (ballDistanceToPlayerCenter >= (player.size / 4) * 3) {
                         if (ballY > player.position.y) {
                             ballSpeedY += ballInitSpeed
                         }
                         if (ballY < player.position.y) {
                             ballSpeedY -= ballInitSpeed
                         }
-                    } else if (ballDistanceToPlayerCenter >= (player.size / 8) * 2) {
+                    } else if (ballDistanceToPlayerCenter >= (player.size / 4) * 2) {
                         if (ballY > player.position.y) {
                             ballSpeedY += ballInitSpeed / 2
                         }
                         if (ballY < player.position.y) {
                             ballSpeedY -= ballInitSpeed / 2
                         }
-                    } else if (ballDistanceToPlayerCenter >= (player.size / 8) * 1) {
+                    } else if (ballDistanceToPlayerCenter >= (player.size / 4) * 1) {
                         if (ballY > player.position.y) {
                             ballSpeedY += ballInitSpeed / 3
                         }
