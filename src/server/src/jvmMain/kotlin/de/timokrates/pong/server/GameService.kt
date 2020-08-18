@@ -1,6 +1,5 @@
 package de.timokrates.pong.server
 
-import de.timokrates.pong.domain.Update
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
@@ -18,7 +17,7 @@ object GameService {
                 if (!waitingGames.contains(id)) {
                     clientChannel = Channel()
                     waitingGames[id] = clientChannel
-                    Game().game(clientChannel)
+                    Game().setupGame(clientChannel)
                 } else {
                     clientChannel = waitingGames[id] ?: return@launch
                 }

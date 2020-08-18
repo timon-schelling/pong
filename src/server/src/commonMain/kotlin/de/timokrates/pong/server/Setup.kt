@@ -4,10 +4,8 @@ import de.timokrates.pong.domain.Update
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.withLock
 
-
-fun Game.game(clientChannel: Channel<Client>) = GlobalScope.launch {
+fun Game.setupGame(clientChannel: Channel<Client>) = GlobalScope.launch {
     val updateChannel = initializeClients(clientChannel)
     gameLoop(updateChannel)
 }
@@ -29,7 +27,7 @@ private suspend fun Game.initializeClients(clientChannel: Channel<Client>): Chan
         GlobalScope.launch {
             for (update in it.input) {
                 val input = update.input ?: continue
-                withLock {
+                shared.modify {
                     inputs = inputs.toMutableList().apply {
                         this[i] = input
                     }
