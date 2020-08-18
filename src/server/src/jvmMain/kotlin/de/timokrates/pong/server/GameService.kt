@@ -20,6 +20,7 @@ object GameService {
                     Game().setupGame(clientChannel)
                 } else {
                     clientChannel = waitingGames[id] ?: return@launch
+                    waitingGames.remove(id)
                 }
                 clientChannel.send(client)
             }

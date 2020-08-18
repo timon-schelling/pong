@@ -41,7 +41,7 @@ private fun openConnection(server: Server) {
         val httpClient = HttpClient(Js) {
             install(WebSockets)
         }
-        httpClient.webSocket({ parameter("game", "default") }) {
+        httpClient.webSocket(host = window.location.host, request = { parameter("game", "default") }) {
             try {
                 GlobalScope.launch {
                     for (update in server.output) {

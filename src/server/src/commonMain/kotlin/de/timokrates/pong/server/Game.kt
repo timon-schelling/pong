@@ -125,27 +125,27 @@ class Game {
             }
         }
 
+        if (ballY >= 1) {
+            ballSpeedY = -ballSpeedY
+            ballY = 1 - (ballY - 1) //todo replace with 1
+        } else if (ballY <= -1) {
+            ballSpeedY = -ballSpeedY
+            ballY = -1 + (ballY + 1) //todo replace with -1
+        }
         if (ballX >= 1) {
             ballSpeedX = -ballSpeedX
-            ballX = 1 - (ballX - 1)
+            ballX = 1 - (ballX - 1) //todo replace with 1
             val player = state.player.find { it.position.x == 1.0 }
             if (player != null) {
                 collisionBallPlayer(player)
             }
         } else if (ballX <= -1) {
             ballSpeedX = -ballSpeedX
-            ballX = -1 + (ballX + 1)
+            ballX = -1 + (ballX + 1) //todo replace with -1
             val player = state.player.find { it.position.x == -1.0 }
             if (player != null) {
                 collisionBallPlayer(player)
             }
-        }
-        if (ballY >= 1) {
-            ballSpeedY = -ballSpeedY
-            ballY = 1 - (ballY - 1)
-        } else if (ballY <= -1) {
-            ballSpeedY = -ballSpeedY
-            ballY = -1 + (ballY + 1)
         }
 
         state = State(
