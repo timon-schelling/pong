@@ -80,9 +80,9 @@ fun CanvasRenderingContext2D.drawStateUpdates(stateChannel: Channel<State>) {
         drawScaledRect(0.0, 0.0, 1.0, 1.0)
         fillStyle = "#FFFFFF"
         state.player.forEach {
-            drawScaledRect(it.position.x, it.position.y, 0.025, it.size)
+            drawScaledRect(it.position.x, it.position.y, 0.01, it.size)
         }
-        drawScaledRect(state.ball.position.x, state.ball.position.y, 0.025, 0.025)
+        drawScaledRect(state.ball.position.x, state.ball.position.y, 0.02, 0.02)
     }
 
     GlobalScope.launch {

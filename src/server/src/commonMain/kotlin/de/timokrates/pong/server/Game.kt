@@ -1,6 +1,8 @@
 package de.timokrates.pong.server
 
 import de.timokrates.pong.domain.*
+import de.timokrates.pong.lib.logging.Logger
+import de.timokrates.pong.lib.logging.trace
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
@@ -12,7 +14,7 @@ import kotlin.time.measureTime
 import kotlin.time.milliseconds
 
 @OptIn(ExperimentalTime::class)
-class Game {
+class Game(val logger: Logger) {
 
     val shared = Shared()
 
@@ -174,14 +176,20 @@ class Game {
     suspend fun gameLoop(update: Channel<Update>) {
         update.send(Update(state = state))
         val run = true
+        var i = 0
         while (run) {
             val frameTime = measureTime {
                 val lastState = state
                 copyShared()
                 frame()
                 if (lastState != state) update.send(Update(state = state))
+                delay(10.milliseconds)
             }
-            delay(10.milliseconds - frameTime)
+            i++
+            if (i > 100) {
+                logger.trace("frame: $frameTime")
+                i = 0
+            }
         }
     }
 

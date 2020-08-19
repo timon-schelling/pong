@@ -10,10 +10,13 @@ import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import org.w3c.dom.CanvasRenderingContext2D
 import org.w3c.dom.HTMLCanvasElement
+import kotlin.time.ExperimentalTime
+import kotlin.time.measureTime
 
 
 val canvas = run {
@@ -29,7 +32,11 @@ val canvas = run {
     canvas
 }
 
-fun main() {
+@OptIn(ExperimentalTime::class)
+suspend fun main() {
+    println(measureTime {
+        delay(5)
+    })
     val context = canvas.getContext("2d") as CanvasRenderingContext2D
     val server = Server()
     openConnection(server)

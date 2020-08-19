@@ -27,7 +27,19 @@ kotlin {
                 implementation("io.ktor:ktor-server-netty:1.3.2-1.4.0-rc")
                 implementation("io.ktor:ktor-serialization:1.3.2-1.4.0-rc")
                 implementation("io.ktor:ktor-websockets:1.3.2-1.4.0-rc")
+                implementation("com.soywiz.korlibs.klock:klock-jvm:1.11.13")
             }
         }
     }
+}
+
+tasks["distribute"].dependsOn("copyJvmLib")
+
+task("copyJvmLib", Copy::class) {
+    dependsOn("build")
+    group = "distribute"
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    from(kotlin.jvm().compilations["main"].compileDependencyFiles)
+    from("$buildDir/libs")
+    into("$buildDir/dist/lib")
 }
